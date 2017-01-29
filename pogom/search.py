@@ -1095,9 +1095,6 @@ def search_worker_thread(args, account_queue, account_failures,
                 time.sleep(delay)
 
         # Catch any process exceptions, log them, and continue the thread.
-        except NotLoggedInException as e:
-            log.error(e)
-            account_queue.put(account)
         except HashingOfflineException as e:
             log.error(e)
             account_queue.put(account)
