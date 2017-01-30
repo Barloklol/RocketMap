@@ -1881,8 +1881,7 @@ def parse_map(args, map_dict, step_location, db_update_queue, wh_update_queue,
                         'enabled': f['enabled'],
                         'latitude': f['latitude'],
                         'longitude': f['longitude'],
-                        'last_modified': f['last_modified_timestamp_ms'],
-                        
+                        'last_modified': f['last_modified_timestamp_ms']                        
                     }))
 
                 gyms[f['id']] = {
