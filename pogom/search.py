@@ -35,6 +35,7 @@ from collections import deque
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i
 from pgoapi import utilities as util
+from pgoapi.exceptions import AuthException, HashingOfflineException
 from pgoapi.hash_server import HashServer
 
 from .models import parse_map, GymDetails, parse_gyms, MainWorker, WorkerStatus
