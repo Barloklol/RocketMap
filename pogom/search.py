@@ -35,7 +35,7 @@ from collections import deque
 from pgoapi import PGoApi
 from pgoapi.utilities import f2i
 from pgoapi import utilities as util
-from pgoapi.exceptions import AuthException, HashingOfflineException
+from pgoapi.exceptions import AuthException, HashingOfflineException, NianticOfflineException
 from pgoapi.hash_server import HashServer
 
 from .models import parse_map, GymDetails, parse_gyms, MainWorker, WorkerStatus
@@ -1116,6 +1116,9 @@ def search_worker_thread(args, account_queue, account_failures,
                 time.sleep(delay)
 
         # Catch any process exceptions, log them, and continue the thread.
+        except NianticOfflineException as e:
+            log.error(e)
+            account_queue.put(account)
         except HashingOfflineException as e:
             log.error(e)
             account_queue.put(account)
