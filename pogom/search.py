@@ -514,9 +514,9 @@ def search_overseer_thread(args, new_location_queue, pause_bit, heartb,
         # it's been cleared above.  Either way, time to fill it back up.
         for i in range(0, len(scheduler_array)):
             if scheduler_array[i].time_to_refresh_queue():
-                threadStatus['Overseer']['message'] = (
-                    'Search queue {} empty, scheduling ' +
-                    'more items to scan.').format(i)
+                threadStatus['Overseer']['message'] = ('Scanning status: {} total waiting, {} initial bands, ' +
+                   '{} TTH searches, and {} new spawns').format(
+                       n, counter['band'], counter['TTH'], counter['spawn'])
                 log.debug(
                     'Search queue %d empty, scheduling more items to scan.', i)
                 try:  # Can't have the scheduler die because of a DB deadlock.
