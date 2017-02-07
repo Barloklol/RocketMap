@@ -260,6 +260,9 @@ def get_args():
                         help=('Disables PokeStops from the map (including ' +
                               'parsing them into local db).'),
                         action='store_true', default=False)
+    parser.add_argument('-igl', '--ignore-list',
+                        help='Ignores Pokemon from the map (including parsing them into local db)',
+                        action='append', default=[])
     parser.add_argument('-ss', '--spawnpoint-scanning',
                         help=('Use spawnpoint scanning (instead of hex ' +
                               'grid). Scans in a circle based on step_limit ' +
@@ -641,6 +644,14 @@ def get_args():
         # Disable webhook scheduler updates if webhooks are disabled
         if args.webhooks is None:
             args.webhook_scheduler_updates = False
+
+        # Return int for Pokemon Ignore list if it's exist
+        if len(args.ignore_list):
+            try:
+                args.ignore_list = set([int(i) for i in args.ignore_list])
+            except Exception as e:
+                print("Error: Pokemon IDs need to be Interger", e)
+                sys.exit(1)
 
     return args
 

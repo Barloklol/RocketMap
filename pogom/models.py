@@ -1741,7 +1741,7 @@ def parse_map(args, map_dict, step_location, db_update_queue, wh_update_queue,
     ScannedLocation.update_band(scan_loc)
     just_completed = not done_already and scan_loc['done']
 
-    if wild_pokemon and config['parse_pokemon']:
+    if wild_pokemon not in args.ignore_list and config['parse_pokemon']:
         encounter_ids = [b64encode(str(p['encounter_id']))
                          for p in wild_pokemon]
         # For all the wild Pokemon we found check if an active Pokemon is in
