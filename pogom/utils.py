@@ -631,6 +631,13 @@ def get_args():
             args.encounter_whitelist = [int(i) for i in
                                         args.encounter_whitelist]
 
+        if len(args.ignore_list):
+            try:
+                args.ignore_list = set([int(i) for i in args.ignore_list])
+            except Exception as e:
+                print("Error: Pokemon IDs need to be Interger", e)
+                sys.exit(1)                                 
+ 
         # Decide which scanning mode to use.
         if args.spawnpoint_scanning:
             args.scheduler = 'SpawnScan'
@@ -645,13 +652,6 @@ def get_args():
         if args.webhooks is None:
             args.webhook_scheduler_updates = False
 
-        # Return int for Pokemon Ignore list if it's exist
-        if len(args.ignore_list):
-            try:
-                args.ignore_list = set([int(i) for i in args.ignore_list])
-            except Exception as e:
-                print("Error: Pokemon IDs need to be Interger", e)
-                sys.exit(1)
 
     return args
 

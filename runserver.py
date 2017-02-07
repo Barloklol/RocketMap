@@ -225,7 +225,7 @@ def main():
         log.info('Parsing of Gyms disabled.')
     if args.encounter:
         log.info('Encountering pokemon enabled.')
-    if len(args.ignore_list):
+    if args.ignore_list:
         log.info('Ignore Pokemon IDs: {}'.format(args.ignore_list))
 
     config['LOCALE'] = args.locale
