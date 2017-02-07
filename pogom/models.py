@@ -1904,74 +1904,74 @@ def parse_map(args, map_dict, step_location, db_update_queue, wh_update_queue,
             #try to spin any pokestops in range
             spin_pokestop(api, (step_location[0], step_location[1]), forts)
             stop_ids = [f['id'] for f in forts if f.get('type') == 1]
-#            if stop_ids:
-#                query = (Pokestop
-#                         .select(Pokestop.pokestop_id, Pokestop.last_modified)
-#                         .where((Pokestop.pokestop_id << stop_ids))
-#                         .dicts())
-#                encountered_pokestops = [(f['pokestop_id'], int(
-#                    (f['last_modified'] -
-#                     datetime(1970, 1, 1)).total_seconds())) for f in query]
-#
+            if stop_ids:
+                query = (Pokestop
+                         .select(Pokestop.pokestop_id, Pokestop.last_modified)
+                         .where((Pokestop.pokestop_id << stop_ids))
+                         .dicts())
+                encountered_pokestops = [(f['pokestop_id'], int(
+                    (f['last_modified'] -
+                     datetime(1970, 1, 1)).total_seconds())) for f in query]
+
         for f in forts:
-#            if config['parse_pokestops'] and f.get('type') == 1:  # Pokestops.
-#                if 'active_fort_modifier' in f:
-#                    lure_expiration = (datetime.utcfromtimestamp(
-#                        f['last_modified_timestamp_ms'] / 1000.0) +
-#                        timedelta(minutes=30))
-#                    active_fort_modifier = f['active_fort_modifier']
-#                    if args.webhooks and args.webhook_updates_only:
-#                        wh_update_queue.put(('pokestop', {
-#                            'pokestop_id': b64encode(str(f['id'])),
-#                            'enabled': f['enabled'],
-#                            'latitude': f['latitude'],
-#                            'longitude': f['longitude'],
-#                            'last_modified_time': f[
-#                                'last_modified_timestamp_ms'],
-#                            'lure_expiration': calendar.timegm(
-#                                lure_expiration.timetuple()),
-#                            'active_fort_modifier': active_fort_modifier
-#                        }))
-#                else:
-#                    lure_expiration, active_fort_modifier = None, None
-#
-#                # Send all pokestops to webhooks.
-#                if args.webhooks and not args.webhook_updates_only:
+            if config['parse_pokestops'] and f.get('type') == 1:  # Pokestops.
+                if 'active_fort_modifier' in f:
+                    lure_expiration = (datetime.utcfromtimestamp(
+                        f['last_modified_timestamp_ms'] / 1000.0) +
+                        timedelta(minutes=30))
+                    active_fort_modifier = f['active_fort_modifier']
+                    if args.webhooks and args.webhook_updates_only:
+                        wh_update_queue.put(('pokestop', {
+                            'pokestop_id': b64encode(str(f['id'])),
+                            'enabled': f['enabled'],
+                            'latitude': f['latitude'],
+                            'longitude': f['longitude'],
+                            'last_modified_time': f[
+                                'last_modified_timestamp_ms'],
+                            'lure_expiration': calendar.timegm(
+                                lure_expiration.timetuple()),
+                            'active_fort_modifier': active_fort_modifier
+                        }))
+                else:
+                    lure_expiration, active_fort_modifier = None, None
+
+                # Send all pokestops to webhooks.
+                if args.webhooks and not args.webhook_updates_only:
                     # Explicitly set 'webhook_data', in case we want to change
                     # the information pushed to webhooks.  Similar to above and
                     # previous commits.
-#                    l_e = None
-#
-#                    if lure_expiration is not None:
-#                        l_e = calendar.timegm(lure_expiration.timetuple())
-#
-#                    wh_update_queue.put(('pokestop', {
-#                        'pokestop_id': b64encode(str(f['id'])),
-#                        'enabled': f['enabled'],
-#                        'latitude': f['latitude'],
-#                        'longitude': f['longitude'],
-#                        'last_modified_time': f['last_modified_timestamp_ms'],
-#                        'lure_expiration': l_e,
-#                        'active_fort_modifier': active_fort_modifier
-#                    }))
-#
-#                if ((f['id'], int(f['last_modified_timestamp_ms'] / 1000.0))
-#                        in encountered_pokestops):
-#                    # If pokestop has been encountered before and hasn't
-#                    # changed don't process it.
-#                    stopsskipped += 1
-#                    continue
-#
-#                pokestops[f['id']] = {
-#                    'pokestop_id': f['id'],
-#                    'enabled': f['enabled'],
-#                    'latitude': f['latitude'],
-#                    'longitude': f['longitude'],
-#                    'last_modified': datetime.utcfromtimestamp(
-#                        f['last_modified_timestamp_ms'] / 1000.0),
-#                    'lure_expiration': lure_expiration,
-#                    'active_fort_modifier': active_fort_modifier
-#                }
+                    l_e = None
+
+                    if lure_expiration is not None:
+                        l_e = calendar.timegm(lure_expiration.timetuple())
+
+                    wh_update_queue.put(('pokestop', {
+                        'pokestop_id': b64encode(str(f['id'])),
+                        'enabled': f['enabled'],
+                        'latitude': f['latitude'],
+                        'longitude': f['longitude'],
+                        'last_modified_time': f['last_modified_timestamp_ms'],
+                        'lure_expiration': l_e,
+                        'active_fort_modifier': active_fort_modifier
+                    }))
+
+                if ((f['id'], int(f['last_modified_timestamp_ms'] / 1000.0))
+                        in encountered_pokestops):
+                    # If pokestop has been encountered before and hasn't
+                    # changed don't process it.
+                    stopsskipped += 1
+                    continue
+
+                pokestops[f['id']] = {
+                    'pokestop_id': f['id'],
+                    'enabled': f['enabled'],
+                    'latitude': f['latitude'],
+                    'longitude': f['longitude'],
+                    'last_modified': datetime.utcfromtimestamp(
+                        f['last_modified_timestamp_ms'] / 1000.0),
+                    'lure_expiration': lure_expiration,
+                    'active_fort_modifier': active_fort_modifier
+                }
 
             # Currently, there are only stops and gyms.
             if config['parse_gyms'] and f.get('type') is None:
