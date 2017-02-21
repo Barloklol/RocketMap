@@ -1907,31 +1907,6 @@ def parse_map(args, map_dict, step_location, db_update_queue, wh_update_queue,
 #                     datetime(1970, 1, 1)).total_seconds())) for f in query]
 #
         for f in forts:
-<<<<<<< HEAD
-#            if config['parse_pokestops'] and f.get('type') == 1:  # Pokestops.
-#                if 'active_fort_modifier' in f:
-#                    lure_expiration = (datetime.utcfromtimestamp(
-#                        f['last_modified_timestamp_ms'] / 1000.0) +
-#                        timedelta(minutes=30))
-#                    active_fort_modifier = f['active_fort_modifier']
-#                    if args.webhooks and args.webhook_updates_only:
-#                        wh_update_queue.put(('pokestop', {
-#                            'pokestop_id': b64encode(str(f['id'])),
-#                            'enabled': f['enabled'],
-#                            'latitude': f['latitude'],
-#                            'longitude': f['longitude'],
-#                            'last_modified_time': f[
-#                                'last_modified_timestamp_ms'],
-#                            'lure_expiration': calendar.timegm(
-#                                lure_expiration.timetuple()),
-#                            'active_fort_modifier': active_fort_modifier
-#                        }))
-#                else:
-#                    lure_expiration, active_fort_modifier = None, None
-#
-#                # Send all pokestops to webhooks.
-#                if args.webhooks and not args.webhook_updates_only:
-=======
             if config['parse_pokestops'] and f.get('type') == 1:  # Pokestops.
                 if 'active_fort_modifier' in f:
                     lure_expiration = (datetime.utcfromtimestamp(
@@ -1955,7 +1930,6 @@ def parse_map(args, map_dict, step_location, db_update_queue, wh_update_queue,
 
                 # Send all pokestops to webhooks.
                 if args.webhooks and not args.webhook_updates_only:
->>>>>>> e1739adc71eb698e143bf97bf350d128bde43798
                     # Explicitly set 'webhook_data', in case we want to change
                     # the information pushed to webhooks.  Similar to above and
                     # previous commits.
