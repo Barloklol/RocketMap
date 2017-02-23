@@ -676,6 +676,7 @@ class Gym(BaseModel):
                    .where(GymMember.gym_id == id)
                    .where(GymMember.last_scanned > Gym.last_modified)
                    .order_by(GymPokemon.cp.desc())
+                   .distinct()
                    .dicts())
 
         for p in pokemon:
@@ -1024,7 +1025,7 @@ class ScannedLocation(BaseModel):
         return scan
 
     @classmethod
-    def get_band_count_by_cellids(cls, cellids):
+    def get_bands_filled_by_cellids(cls, cellids):
         return int(cls
                    .select(fn.SUM(fn.IF(cls.band1 == -1, 0, 1)
                                   + fn.IF(cls.band2 == -1, 0, 1)

@@ -475,6 +475,7 @@ class SpeedScan(HexSearch):
 
     # Call base initialization, set step_distance
     def __init__(self, queues, status, args):
+        start = time.time()
         super(SpeedScan, self).__init__(queues, status, args)
         self.refresh_date = datetime.utcnow() - timedelta(days=1)
         self.next_band_date = self.refresh_date
@@ -494,6 +495,8 @@ class SpeedScan(HexSearch):
         self.status_message = []
         self.tth_found = 0
         self._stat_init()
+        end = time.time()
+        log.info("SpeedScan.__init__: %f" % (end - start))
 
     def _stat_init(self):
         self.spawns_found = 0
@@ -504,6 +507,7 @@ class SpeedScan(HexSearch):
 
     # On location change, empty the current queue and the locations list
     def location_changed(self, scan_location, db_update_queue):
+        start = time.time()
         super(SpeedScan, self).location_changed(scan_location, db_update_queue)
         self.locations = self._generate_locations()
         scans = {}
@@ -545,6 +549,8 @@ class SpeedScan(HexSearch):
             db_update_queue.put((ScanSpawnPoint, scan_spawn_point))
         else:
             log.info('Spawn points assigned')
+        end = time.time()
+        log.info("SpeedScan.location_changed: %f" % (end - start))
 
     # Generates the list of locations to scan
     # Created a new function, because speed scan requires fixed locations,
@@ -552,7 +558,7 @@ class SpeedScan(HexSearch):
     # inner rings would change if -st was increased requiring rescanning
     # since it didn't recognize the location in the ScannedLocation table
     def _generate_locations(self):
-
+        start = time.time()
         NORTH = 0
         EAST = 90
         SOUTH = 180
@@ -605,12 +611,15 @@ class SpeedScan(HexSearch):
             altitude = get_altitude(self.args, location)
             generated_locations.append(
                 (step, (location[0], location[1], altitude), 0, 0))
+        end = time.time()
+        log.info("SpeedScan._generate_locations: %f" % (end - start))
         return generated_locations
 
     def getsize(self):
         return len(self.queues[0])
 
     def get_overseer_message(self):
+        start = time.time()
         n = 0
         ms = (datetime.utcnow() - self.refresh_date).total_seconds() + \
             self.refresh_ms
@@ -637,12 +646,15 @@ class SpeedScan(HexSearch):
                        n, counter['band'], counter['TTH'], counter['spawn'])
         if self.status_message:
             message += '\n' + self.status_message
-
+        end = time.time()
+        log.info("SpeedScan.get_overseer_message: %f queuesize: %i" %
+                 ((end - start), self.getsize()))
         return message
 
     # Refresh queue every 5 minutes
     # the first band of a scan is done
     def time_to_refresh_queue(self):
+        log.info("time_to_refresh_queue called")
         return ((datetime.utcnow() - self.refresh_date).total_seconds() >
                 self.minutes * 60 or self.queues == [[]])
 
@@ -659,8 +671,9 @@ class SpeedScan(HexSearch):
 
     def band_status(self):
         try:
+            start = time.time()
             bands_total = len(self.locations) * 5
-            bands_filled = ScannedLocation.get_band_count_by_cellids(
+            bands_filled = ScannedLocation.get_bands_filled_by_cellids(
                 self.scans.keys())
             percent = bands_filled * 100.0 / bands_total
             if bands_total == bands_filled:
@@ -669,6 +682,8 @@ class SpeedScan(HexSearch):
                 log.info('Initial spawnpoint scan, %d of %d bands are done ' +
                          'or %.1f%% complete', bands_filled, bands_total,
                          percent)
+            end = time.time()
+            log.info("SpeedScan.band_status: %f" % (end - start))
             return percent
 
         except Exception as e:
@@ -678,6 +693,7 @@ class SpeedScan(HexSearch):
 
     # Update the queue, and provide a report on performance of last minutes
     def schedule(self):
+        start2 = time.time()
         log.info('Refreshing queue')
         self.ready = False
         now_date = datetime.utcnow()
@@ -856,14 +872,19 @@ class SpeedScan(HexSearch):
                     'Performance statistics had an Exception: {}'.format(
                         repr(e)))
                 traceback.print_exc(file=sys.stdout)
+        end2 = time.time()
+        log.info("SpeedScan.schedule: %f" % (end2 - start2))
 
     # Find the best item to scan next
     def next_item(self, status):
         # score each item in the queue by # of due spawns or scan time bands
         # can be filled
 
+        start = time.time()
         while not self.ready:
             time.sleep(1)
+        end = time.time()
+        start2 = time.time()
 
         now_date = datetime.utcnow()
         now_time = time.time()
@@ -875,8 +896,11 @@ class SpeedScan(HexSearch):
         worker_loc = [status['latitude'], status['longitude']]
         last_action = status['last_scan_date']
 
+        distance_calcs = 0
+        iters = 0
         # check all scan locations possible in the queue
         for i, item in enumerate(q):
+            iters += 1
             # if already claimed by another worker or done, pass
             if item.get('done', False):
                 continue
@@ -898,6 +922,7 @@ class SpeedScan(HexSearch):
                 break
 
             loc = item['loc']
+            distance_calcs += 1
             distance = equi_rect_distance(loc, worker_loc)
             secs_to_arrival = distance / self.args.kph * 3600
 
@@ -950,12 +975,12 @@ class SpeedScan(HexSearch):
                                     'speed limit.')
             return -1, 0, 0, 0, messages
 
-        if (equi_rect_distance(loc, worker_loc) >
-                (now_date - last_action).total_seconds() *
+        distance = equi_rect_distance(loc, worker_loc)
+        if (distance > (now_date - last_action).total_seconds() *
                 self.args.kph / 3600):
 
             messages['wait'] = 'Moving {}m to step {} for a {}.'.format(
-                int(equi_rect_distance(loc, worker_loc) * 1000), step,
+                int(distance * 1000), step,
                 best['kind'])
             return -1, 0, 0, 0, messages
 
@@ -981,9 +1006,13 @@ class SpeedScan(HexSearch):
 
         messages['search'] = 'Scanning step {} for a {}.'.format(
             best['step'], best['kind'])
+        end2 = time.time()
+        log.info("SpeedScan.next_item: %f sleeptime: %f iters: %i distance_calcs: %i" % (
+            (end2 - start2), (end - start), iters, distance_calcs))
         return best['step'], best['loc'], 0, 0, messages
 
     def task_done(self, status, parsed=False):
+        start = time.time()
         if parsed:
             # Record delay between spawn time and scanning for statistics
             now_secs = date_secs(datetime.utcnow())
@@ -1043,6 +1072,8 @@ class SpeedScan(HexSearch):
                                 now_secs > item['start'] and
                                 now_secs < item['end']):
                             item['done'] = 'Scanned'
+        end = time.time()
+        log.info("SpeedScan.task_done: %f" % (end - start))
 
 
 # The SchedulerFactory returns an instance of the correct type of scheduler.
