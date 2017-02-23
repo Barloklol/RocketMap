@@ -16,6 +16,7 @@ import struct
 import requests
 from uuid import uuid4
 from s2sphere import CellId, LatLng
+from inspect import getmodule
 
 from . import config
 
