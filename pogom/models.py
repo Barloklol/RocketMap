@@ -28,7 +28,7 @@ from cachetools import cached
 from . import config
 from .utils import get_pokemon_name, get_pokemon_rarity, get_pokemon_types, \
     get_args, cellid, in_radius, date_secs, clock_between, secs_between, \
-    get_move_name, get_move_damage, get_move_energy, get_move_type
+    get_move_name, get_move_damage, get_move_energy, get_move_type, async
 from .transform import transform_from_wgs_to_gcj, get_new_coords
 from .customLog import printPokemon
 from .humanaction import spin_pokestop
@@ -2206,6 +2206,9 @@ def parse_gyms(args, gym_responses, wh_update_queue, db_update_queue):
 
 
 def db_updater(args, q, db):
+    # The process pool must be created.
+    async.pool = Pool(args.db_async_pool_size)
+
     # The forever loop.
     while True:
         try:
@@ -2281,6 +2284,7 @@ def clean_db_loop(args):
             log.exception('Exception in clean_db_loop: %s', repr(e))
 
 
+@async
 def bulk_upsert(cls, data, db):
     num_rows = len(data.values())
     i = 0

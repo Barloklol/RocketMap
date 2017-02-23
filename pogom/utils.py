@@ -335,6 +335,9 @@ def get_args():
                         help=('Number of db threads; increase if the db ' +
                               'queue falls behind.'),
                         type=int, default=1)
+    parser.add_argument('--db-async-pool-size',
+                        help=('Number of child processes to use for'
+                              + ' async DB upserts.'), type=int, default=5)
     parser.add_argument('-wh', '--webhook',
                         help='Define URL(s) to POST webhook information to.',
                         default=None, dest='webhooks', action='append')
@@ -891,3 +894,31 @@ def generate_device_info():
         device_info['firmware_type'] = random.choice(ios8 + ios9 + ios10)
 
     return device_info
+
+
+def async(decorated):
+    r'''Wraps a top-level function around an asynchronous dispatcher.
+
+        when the decorated function is called, a task is submitted to a
+        process pool, and a future object is returned, providing access to an
+        eventual return value.
+
+        The future object has a blocking get() method to access the task
+        result: it will return immediately if the job is already done, or block
+        until it completes.
+
+        This decorator won't work on methods, due to limitations in Python's
+        pickling machinery (in principle methods could be made pickleable, but
+        good luck on that).
+    '''
+    # Keeps the original function visible from the module global namespace,
+    # under a name consistent to its __name__ attribute. This is necessary for
+    # the multiprocessing pickling machinery to work properly.
+    module = getmodule(decorated)
+    decorated.__name__ += '_original'
+    setattr(module, decorated.__name__, decorated)
+
+    def send(*args, **opts):
+        return async.pool.apply_async(decorated, args, opts)
+
+    return send
