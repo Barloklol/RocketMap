@@ -61,7 +61,7 @@ def get_args():
         default_config_files=defaultconfigfiles,
         auto_env_var_prefix='POGOMAP_')
     parser.add_argument('-cf', '--config',
-                        is_config_file=True, help='Configuration file')
+                        is_config_file=True, help='Set configuration file')
     parser.add_argument('-a', '--auth-service', type=str.lower,
                         action='append', default=[],
                         help=('Auth Services, either one for all accounts ' +
@@ -87,10 +87,11 @@ def get_args():
                         help=('Load accounts from CSV file containing ' +
                               '"auth_service,username,passwd" lines.'))
     parser.add_argument('-bh', '--beehive',
-                        help=('Number of leaps desired for beehive setup.' +
-                              'Example: -bh 1 = 7 hexes | -bh 2 = 19 hexes.' +
-                              'Default value is 0 (disabled).'),
-                        type=int, default=0)
+                        help=('Use beehive configuration for multiple ' +
+                              'accounts, one account per hex.  Make sure ' +
+                              'to keep -st under 5, and -w under the total ' +
+                              'amount of accounts available.'),
+                        action='store_true', default=False)
     parser.add_argument('-wph', '--workers-per-hive',
                         help=('Only referenced when using --beehive. Forces ' +
                               'the number of workers per hive.' +
@@ -121,6 +122,9 @@ def get_args():
     parser.add_argument('-nj', '--no-jitter',
                         help=("Don't apply random -9m to +9m jitter to " +
                               "location."),
+                        action='store_true', default=False)
+    parser.add_argument('-al', '--access-logs',
+                        help=("Write web logs to access.log."),
                         action='store_true', default=False)
     parser.add_argument('-st', '--step-limit', help='Steps.', type=int,
                         default=12)
@@ -415,6 +419,11 @@ def get_args():
     parser.add_argument('--disable-blacklist',
                         help=('Disable the global anti-scraper IP blacklist.'),
                         action='store_true', default=False)
+    parser.add_argument('-tp', '--trusted-proxies', default=[],
+                        action='append',
+                        help=('Enables the use of X-FORWARDED-FOR headers ' +
+                              'to identify the IP of clients connecting ' +
+                              'through these trusted proxies.'))
     verbosity = parser.add_mutually_exclusive_group()
     verbosity.add_argument('-v', '--verbose',
                            help=('Show debug messages from RocketMap ' +
